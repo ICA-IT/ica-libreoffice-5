@@ -1,0 +1,76 @@
+cd \users\dad\desktop\temp
+
+java -Dhttps.protocols="TLSv1" -jar configed.jar
+
+
+
+
+
+
+Java 8 Update 152 (64-bit)
+MsiExec.exe /X{26A24AE4-039D-4CA4-87B4-2F64180152F0}
+installer = C:\Windows\Installer\10f0d.msi
+
+
+Java 9.0.4 (64-bit)
+MsiExec.exe /X{885A3911-0760-5252-92C2-001B92997DEA}
+installer = C:\Windows\Installer\3bad6b.msi
+
+
+Java 8 Update 152
+MsiExec.exe /X{26A24AE4-039D-4CA4-87B4-2F32180152F0}
+installer = C:\Windows\Installer\10f03.msi
+
+LibreOffice 6.0 (multilanguage)
+C:\Windows\Installer\16afd.msi
+MsiExec.exe /I{ACF8A736-E677-4C40-AE44-761DACFD31D0}
+
+Google Update Helper
+C:\Windows\Installer\16b02.msi
+MsiExec.exe /I{60EC980A-BDA2-4CB6-A427-B07A5498B4CA}
+
+Malwarebytes version 3.3.1.2183
+"C:\Program Files\Malwarebytes\Anti-Malware\unins000.exe" /SILENT /LOG
+
+
+SUPERAntiSpyware
+"C:\Program Files\SUPERAntiSpyware\Uninstall.exe"
+icon = C:\Program Files\SUPERAntiSpyware\SUPERAntiSpyware.exe
+
+
+CCleaner
+"C:\Program Files\CCleaner\uninst.exe"
+icon = C:\Program Files\CCleaner\CCleaner64.exe
+
+
+Microsoft Security Essentials
+"C:\Program Files\Microsoft Security Client\Setup.exe" /x
+icon = C:\Program Files\Microsoft Security Client\EppManifest.dll,-100
+
+
+
+
+
+certmgr.exe -add -c certificates\manifestSignCertificates.p12 -n "Microsoft Code Signing PCA 2011" -s -r LocalMachine CA
+
+certmgr.exe -add -c certificates\manifestSignCertificates.p12 -n "Microsoft Root Certificate Authority" -s -r LocalMachine root
+
+certmgr.exe -add -c certificates\manifestCounterSignCertificates.p12 -n "Microsoft Time-Stamp PCA 2010" -s -r LocalMachine CA
+
+certmgr.exe -add -c certificates\manifestCounterSignCertificates.p12 -n "Microsoft Root Certificate Authority" -s -r LocalMachine root
+
+certmgr.exe -add -c certificates\vs_installer_opc.SignCertificates.p12 -n "Microsoft Code Signing PCA" -s -r LocalMachine CA
+
+certmgr.exe -add -c certificates\vs_installer_opc.SignCertificates.p12 -n "Microsoft Root Certificate Authority" -s -r LocalMachine root
+
+
+
+
+
+C:\Users\dad\Downloads>vs_community.exe --layout c:\vs2017offline
+
+
+liboffice 64 bit
+LibreOffice_5.4.5_Win_x64.msi
+{7E33997B-06D8-4637-8794-5A0049237308}
+1405 MB

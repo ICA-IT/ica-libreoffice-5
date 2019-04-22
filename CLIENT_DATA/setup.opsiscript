@@ -1,0 +1,191 @@
+; ----------------------------------------------------------------
+; Copyright (c) uib gmbh (www.uib.de)
+; This sourcecode is owned by uib
+; and published under the Terms of the General Public License.
+; credits: http://www.opsi.org/en/credits/
+; ----------------------------------------------------------------
+
+;****************************************
+; SETUPTYPE      msi
+;****************************************
+; PRODUCTID      ica-libreoffice-5
+; SETUPFILE      LibreOffice_5.4.5_Win_x86.msi
+;****************************************
+; LICENSE        false     
+; PRODUCTDESC    Long term support version of LibreOffice 5.
+
+; PRODUCTNAME    LibreOffice 5.4.5.1
+; PRODUCTSIZE    1290 MB
+; PRODUCTVER     5.4.5.1
+;****************************************
+; SETUPSCRIPT    setup.opsiscript
+; UNINSSCRIPT    uninstall.opsiscript
+;****************************************
+; MSIID          {AF7DBD6F-8B79-4846-BE8F-32EF17B640AB}
+; USE-MST        
+; INSTALLDIR     (not used)
+;****************************************
+; TIMESTAMP      3/3/2018 12:23:27
+;****************************************
+
+[Actions]
+requiredWinstVersion >= "4.11.4.3"
+ScriptErrorMessages = false
+
+DefVar $SetupType$
+DefVar $ProductId$ 
+DefVar $Setupfile$ 
+DefVar $InstallDir$
+DefVar $MinimumSpace$
+DefVar $ExitCode$
+DefVar $ErrorMsg$
+DefVar $LicenseRequired$
+DefVar $LicenseKey$
+DefVar $LicensePool$
+DefVar $MsiId$
+DefVar $NsisInstallBatch$
+DefVar $LogDir$
+DefVar $ProductName2$
+DefVar $Setupfile2$
+DefVar $MsiId2$
+DefVar $WinVer$
+DefVar $WinSysType$
+DefVar $WinTypeExt$
+Set $WinVer$ = GetMsVersionInfo
+Set $WinSysType$ = GetSystemType
+
+Set $LogDir$ = "%opsiLogDir%"
+
+include_append "%ScriptPath%\check_msi_exitcode.opsiscript"
+
+; ----------------------------------------------------------------
+Set $SetupType$       = "msi"
+; ----------------------------------------------------------------
+
+; $ProductId$ is the name of the product in opsi, only lower letters, no umlauts, no white spaces, use '-' as a seperator
+Set $ProductId$       = "ica-libreoffice-5"
+; $ProductName2$ is the label used for the desktop icon
+Set $ProductName2$       = "LibreOffice 5.4"
+; $Setupfile$ is the name of the 32 bit setup file
+Set $Setupfile$       = "LibreOffice_5.4.5_Win_x86.msi"
+; $Setupfile2$ is the name of the 64 bit setup file
+Set $Setupfile2$       = "LibreOffice_5.4.5_Win_x64.msi"
+; the path where we find the product after the installation
+Set $InstallDir$      = "(not used)"
+Set $LicenseRequired$ = "false"
+Set $LicensePool$     = "p_" + $ProductId$
+; $MsiId$ is the 32 bit MSI ID
+Set $MsiId$           = "{AF7DBD6F-8B79-4846-BE8F-32EF17B640AB}"
+; $MsiId2$ is the 64 bit MSI ID
+Set $MsiId2$           = "{7E33997B-06D8-4637-8794-5A0049237308}"
+Set $MinimumSpace$    = "1290 MB"
+; ----------------------------------------------------------------
+; ----------------------------------------------------------------
+
+Set $WinTypeExt$ = "x64"
+if ($WinSysType$ = "x86 System")
+    Set $WinTypeExt$ = "x86"
+endif
+
+if ($WinTypeExt$ = "x64")
+    Set $MinimumSpace$    = "1405 MB"
+    Set $Setupfile$       = $Setupfile2$
+    Set $MsiId$           = $MsiId2$   
+endif
+
+if not(HasMinimumSpace ("%SystemDrive%", $MinimumSpace$))
+   LogError "Not enough space on %SystemDrive%, " + $MinimumSpace$ + " on drive %SystemDrive% needed for " + $ProductId$
+   isFatalError "No Space"
+   ; Stop process and set installation status to failed
+else
+   comment "Show product picture"
+   ShowBitmap "%ScriptPath%\" + $ProductId$ + ".png" $ProductId$
+
+   if FileExists("%ScriptPath%\delsub.opsiscript")
+      comment "Start uninstall sub section"
+      Sub "%ScriptPath%\delsub.opsiscript"
+   endif
+   
+   Message "Installing " + $ProductId$ + " ..." + $WinTypeExt$
+   
+   if $LicenseRequired$ = "true"
+      comment "Licensing required, reserve license and get license key"
+      Sub_get_licensekey
+   endif
+
+   
+   comment "Start setup program"
+   AutoActivityDisplay = "true"
+   ChangeDirectory "%SCRIPTPATH%"
+   ;----------------------------------------------
+   setActionProgress "installing"
+   Winbatch_install_msi
+   ;----------------------------------------------
+   Sub_check_exitcode
+   ; delete desktop icon
+   setActionProgress "delete desktop shortcut"
+   LinkFolder_uninstall_nuke
+   AutoActivityDisplay = "false"
+endif
+
+
+; ----------------------------------------------------------------
+; install section
+; ----------------------------------------------------------------
+
+[Winbatch_install_msi]
+msiexec /i "%ScriptPath%\$Setupfile$"  /l* "$LogDir$\$ProductId$.install-log.txt" /qn ALLUSERS=1 REBOOT=ReallySuppress
+;msiexec /i "%ScriptPath%\LibreOffice_6.0.1_Win_x64.msi"  /l* "$LogDir$\$ProductId$.install_log.txt" /qn ALLUSERS=1 REBOOT=ReallySuppress
+
+; ----------------------------------------------------------------
+
+[LinkFolder_uninstall_nuke]
+;
+; delete shortcut from AllUsers desktop:
+;
+ set_basefolder common_desktopdirectory
+ set_subfolder ""
+ delete_element $ProductName2$
+
+; ----------------------------------------------------------------
+
+[Sub_get_licensekey]
+if opsiLicenseManagementEnabled
+   comment "License management is enabled and will be used"
+
+   comment "Trying to get a license key"
+   Set $LicenseKey$ = demandLicenseKey ($LicensePool$)
+   ; If there is an assignment of exactly one licensepool to the product the following call is possible:
+   ; Set $LicenseKey$ = demandLicenseKey ("", $ProductId$)
+   ;
+   ; If there is an assignment of a license pool to a windows software id, it is possible to use:
+   ; DefVar $WindowsSoftwareId$
+   ; $WindowsSoftwareId$ = "..."
+   ; Set $LicenseKey$ = demandLicenseKey ("", "", $WindowsSoftwareId$)
+
+   DefVar $ServiceErrorClass$
+   set $ServiceErrorClass$ = getLastServiceErrorClass
+   comment "Error class: " + $ServiceErrorClass$
+   
+   if $ServiceErrorClass$ = "None"
+      comment "Everything fine, we got the license key '" + $LicenseKey$ + "'"
+   else
+      if $ServiceErrorClass$ = "LicenseConfigurationError"
+         LogError "Fatal: license configuration must be corrected"
+         LogError getLastServiceErrorMessage
+         isFatalError
+      else 
+         if $ServiceErrorClass$ = "LicenseMissingError"
+            LogError "Fatal: required license is not supplied"
+            isFatalError
+         endif
+      endif
+   endif
+else
+   LogError "Fatal: license required, but license management not enabled"
+   isFatalError
+endif
+
+; ----------------------------------------------------------------
+; ----------------------------------------------------------------
+
